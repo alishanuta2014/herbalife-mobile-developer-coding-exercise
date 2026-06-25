@@ -25,3 +25,17 @@ export function roundNutritionTotals(totals: NutritionTotals): NutritionTotals {
     fiber: Math.round(totals.fiber),
   };
 }
+
+/** Progress toward a daily goal, capped at 100% for bar display. */
+export function calculateGoalProgress(value: number, goal: number): number {
+  if (goal <= 0) return 0;
+  return Math.min((value / goal) * 100, 100);
+}
+
+export function calculateRemaining(value: number, goal: number): number {
+  return Math.max(goal - value, 0);
+}
+
+export function calculateOverGoal(value: number, goal: number): number {
+  return Math.max(value - goal, 0);
+}

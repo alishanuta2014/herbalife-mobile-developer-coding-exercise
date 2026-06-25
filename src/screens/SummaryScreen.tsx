@@ -2,7 +2,13 @@ import React, { useMemo } from 'react';
 import { View, Text, StyleSheet, ScrollView } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useFoodLog } from '../hooks/FoodLogContext';
-import { calculateNutritionTotals, roundNutritionTotals } from '../utils/nutrition';
+import {
+  calculateNutritionTotals,
+  roundNutritionTotals,
+  calculateGoalProgress,
+  calculateRemaining,
+  calculateOverGoal,
+} from '../utils/nutrition';
 import { DailyGoals } from '../types';
 import { Colors, Spacing, FontSize, BorderRadius } from '../theme';
 
@@ -55,9 +61,7 @@ export default function SummaryScreen() {
         </View>
         {/* TODO: Add a progress bar or ring here */}
         <ProgressBar value={totals.calories} goal={goals.calories} color={Colors.primary} />
-        <Text style={styles.progressCaption}>
-          {Math.max(goals.calories - totals.calories, 0)} kcal remaining
-        </Text>
+        <GoalProgressCaption value={totals.calories} goal={goals.calories} unit="kcal" />
       </View>
 
       {/* Macro Cards */}
@@ -91,6 +95,7 @@ function MacroCard({ label, value, goal, color }: MacroCardProps) {
       <Text style={styles.macroValue}>{value}g</Text>
       <Text style={styles.macroGoal}>of {goal}g</Text>
       <ProgressBar value={value} goal={goal} color={color} />
+      <GoalProgressCaption value={value} goal={goal} unit="g" compact />
     </View>
   );
 }
@@ -102,7 +107,7 @@ interface ProgressBarProps {
 }
 
 function ProgressBar({ value, goal, color = Colors.primary }: ProgressBarProps) {
-  const pct = goal > 0 ? Math.min((value / goal) * 100, 100) : 0;
+  const pct = calculateGoalProgress(value, goal);
 
   return (
     <View style={styles.progressBar}>
@@ -111,6 +116,33 @@ function ProgressBar({ value, goal, color = Colors.primary }: ProgressBarProps) 
       </View>
       <Text style={styles.progressLabel}>{Math.round(pct)}%</Text>
     </View>
+  );
+}
+
+interface GoalProgressCaptionProps {
+  value: number;
+  goal: number;
+  unit: string;
+  compact?: boolean;
+}
+
+function GoalProgressCaption({ value, goal, unit, compact }: GoalProgressCaptionProps) {
+  const over = calculateOverGoal(value, goal);
+
+  if (over > 0) {
+    return (
+      <Text
+        style={[styles.progressCaption, compact && styles.progressCaptionCompact, styles.overGoal]}
+      >
+        {over} {unit} over goal
+      </Text>
+    );
+  }
+
+  return (
+    <Text style={[styles.progressCaption, compact && styles.progressCaptionCompact]}>
+      {calculateRemaining(value, goal)} {unit} remaining
+    </Text>
   );
 }
 
@@ -193,6 +225,13 @@ const styles = StyleSheet.create({
     fontSize: FontSize.sm,
     color: Colors.textMuted,
     marginTop: Spacing.xs,
+  },
+  progressCaptionCompact: {
+    fontSize: FontSize.xs,
+    marginTop: 4,
+  },
+  overGoal: {
+    color: Colors.warning,
   },
   macroRow: {
     flexDirection: 'row',

@@ -1,21 +1,24 @@
 import React, { useState, useCallback } from 'react';
-import { View, Text, TextInput, FlatList, StyleSheet, Alert } from 'react-native';
+import { View, Text, TextInput, FlatList, StyleSheet } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Food } from '../types';
 import { searchFoods } from '../data/foods';
 import FoodItem from '../components/FoodItem';
+import { useFoodLog } from '../hooks/FoodLogContext';
 import { Colors, Spacing, FontSize, BorderRadius } from '../theme';
 
 export default function FoodSearchScreen() {
   const [query, setQuery] = useState('');
   const results = searchFoods(query);
   const insets = useSafeAreaInsets();
+  const { entries, addFood } = useFoodLog();
 
-  const handleAddToLog = useCallback((food: Food) => {
-    // TODO: Replace this placeholder with real log state management.
-    // The food being added is available as `food`.
-    Alert.alert('Add to Log', `"${food.name}", log state not yet implemented.`, [{ text: 'OK' }]);
-  }, []);
+  const handleAddToLog = useCallback(
+    (food: Food) => {
+      addFood(food);
+    },
+    [addFood]
+  );
 
   return (
     <View style={styles.container}>
@@ -24,6 +27,11 @@ export default function FoodSearchScreen() {
         <Text style={styles.subtitle}>
           Search our database of common foods and Herbalife products
         </Text>
+        {entries.length > 0 && (
+          <Text style={styles.logCount}>
+            {entries.length} item{entries.length !== 1 ? 's' : ''} in today's log
+          </Text>
+        )}
       </View>
 
       <View style={styles.searchContainer}>
@@ -86,6 +94,12 @@ const styles = StyleSheet.create({
   subtitle: {
     fontSize: FontSize.sm,
     color: Colors.textSecondary,
+  },
+  logCount: {
+    fontSize: FontSize.sm,
+    color: Colors.primary,
+    fontWeight: '600',
+    marginTop: Spacing.xs,
   },
   searchContainer: {
     paddingHorizontal: Spacing.md,

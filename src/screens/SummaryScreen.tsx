@@ -49,19 +49,18 @@ export default function SummaryScreen() {
     >
       <View style={styles.header}>
         <Text style={styles.title}>Summary</Text>
-        <Text style={styles.subtitle}>Today's nutrition at a glance</Text>
+        <Text style={styles.subtitle}>What's left to hit your daily goals</Text>
       </View>
 
       {/* Calorie Card */}
       <View style={styles.card}>
         <Text style={styles.cardLabel}>Calories</Text>
-        <View style={styles.calorieRow}>
-          <Text style={styles.calorieValue}>{totals.calories}</Text>
-          <Text style={styles.calorieGoal}> / {goals.calories} kcal</Text>
-        </View>
+        <RemainingHero value={totals.calories} goal={goals.calories} unit="kcal" />
+        <Text style={styles.consumedCaption}>
+          {totals.calories} / {goals.calories} kcal consumed
+        </Text>
         {/* TODO: Add a progress bar or ring here */}
         <ProgressBar value={totals.calories} goal={goals.calories} color={Colors.primary} />
-        <GoalProgressCaption value={totals.calories} goal={goals.calories} unit="kcal" />
       </View>
 
       {/* Macro Cards */}
@@ -92,10 +91,11 @@ function MacroCard({ label, value, goal, color }: MacroCardProps) {
   return (
     <View style={[styles.card, styles.macroCard]}>
       <Text style={[styles.macroLabel, { color }]}>{label}</Text>
-      <Text style={styles.macroValue}>{value}g</Text>
-      <Text style={styles.macroGoal}>of {goal}g</Text>
+      <RemainingHero value={value} goal={goal} unit="g" compact color={color} />
+      <Text style={styles.macroConsumed}>
+        {value}g of {goal}g consumed
+      </Text>
       <ProgressBar value={value} goal={goal} color={color} />
-      <GoalProgressCaption value={value} goal={goal} unit="g" compact />
     </View>
   );
 }
@@ -119,30 +119,48 @@ function ProgressBar({ value, goal, color = Colors.primary }: ProgressBarProps) 
   );
 }
 
-interface GoalProgressCaptionProps {
+interface RemainingHeroProps {
   value: number;
   goal: number;
   unit: string;
   compact?: boolean;
+  color?: string;
 }
 
-function GoalProgressCaption({ value, goal, unit, compact }: GoalProgressCaptionProps) {
+function RemainingHero({
+  value,
+  goal,
+  unit,
+  compact,
+  color = Colors.textPrimary,
+}: RemainingHeroProps) {
   const over = calculateOverGoal(value, goal);
+  const remaining = calculateRemaining(value, goal);
 
   if (over > 0) {
     return (
-      <Text
-        style={[styles.progressCaption, compact && styles.progressCaptionCompact, styles.overGoal]}
-      >
-        {over} {unit} over goal
-      </Text>
+      <View style={styles.remainingHero}>
+        <Text
+          style={[compact ? styles.remainingValueCompact : styles.remainingValue, styles.overGoal]}
+        >
+          {over} {unit}
+        </Text>
+        <Text style={[styles.remainingLabel, compact && styles.remainingLabelCompact]}>
+          over goal
+        </Text>
+      </View>
     );
   }
 
   return (
-    <Text style={[styles.progressCaption, compact && styles.progressCaptionCompact]}>
-      {calculateRemaining(value, goal)} {unit} remaining
-    </Text>
+    <View style={styles.remainingHero}>
+      <Text style={[compact ? styles.remainingValueCompact : styles.remainingValue, { color }]}>
+        {remaining} {unit}
+      </Text>
+      <Text style={[styles.remainingLabel, compact && styles.remainingLabelCompact]}>
+        remaining
+      </Text>
+    </View>
   );
 }
 
@@ -183,19 +201,31 @@ const styles = StyleSheet.create({
     letterSpacing: 0.5,
     marginBottom: Spacing.xs,
   },
-  calorieRow: {
-    flexDirection: 'row',
-    alignItems: 'baseline',
-    marginBottom: Spacing.sm,
+  remainingHero: {
+    marginBottom: Spacing.xs,
   },
-  calorieValue: {
+  remainingValue: {
     fontSize: FontSize.xxxl,
     fontWeight: '700',
     color: Colors.textPrimary,
   },
-  calorieGoal: {
-    fontSize: FontSize.md,
+  remainingValueCompact: {
+    fontSize: FontSize.xl,
+    fontWeight: '700',
+    color: Colors.textPrimary,
+  },
+  remainingLabel: {
+    fontSize: FontSize.sm,
     color: Colors.textSecondary,
+    marginTop: 2,
+  },
+  remainingLabelCompact: {
+    fontSize: FontSize.xs,
+  },
+  consumedCaption: {
+    fontSize: FontSize.sm,
+    color: Colors.textMuted,
+    marginBottom: Spacing.sm,
   },
   progressBar: {
     flexDirection: 'row',
@@ -221,15 +251,6 @@ const styles = StyleSheet.create({
     minWidth: 32,
     textAlign: 'right',
   },
-  progressCaption: {
-    fontSize: FontSize.sm,
-    color: Colors.textMuted,
-    marginTop: Spacing.xs,
-  },
-  progressCaptionCompact: {
-    fontSize: FontSize.xs,
-    marginTop: 4,
-  },
   overGoal: {
     color: Colors.warning,
   },
@@ -248,12 +269,7 @@ const styles = StyleSheet.create({
     letterSpacing: 0.5,
     marginBottom: 4,
   },
-  macroValue: {
-    fontSize: FontSize.xl,
-    fontWeight: '700',
-    color: Colors.textPrimary,
-  },
-  macroGoal: {
+  macroConsumed: {
     fontSize: FontSize.xs,
     color: Colors.textMuted,
     marginBottom: Spacing.xs,

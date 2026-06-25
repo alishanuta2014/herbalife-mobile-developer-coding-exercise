@@ -1,7 +1,7 @@
 import React, { useState, useCallback } from 'react';
 import { View, Text, TextInput, FlatList, StyleSheet } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Food } from '../types';
+import { Food, MealSlot } from '../types';
 import { searchFoods } from '../data/foods';
 import FoodItem from '../components/FoodItem';
 import ServingSizePickerModal from '../components/ServingSizePickerModal';
@@ -12,6 +12,7 @@ export default function FoodSearchScreen() {
   const [query, setQuery] = useState('');
   const [pickerFood, setPickerFood] = useState<Food | null>(null);
   const [selectedServings, setSelectedServings] = useState(1);
+  const [selectedMealSlot, setSelectedMealSlot] = useState<MealSlot>('breakfast');
   const results = searchFoods(query);
   const insets = useSafeAreaInsets();
   const { entries, addFood } = useFoodLog();
@@ -21,13 +22,14 @@ export default function FoodSearchScreen() {
     // The food being added is available as `food`.
     setPickerFood(food);
     setSelectedServings(1);
+    setSelectedMealSlot('breakfast');
   }, []);
 
   const handleConfirmAdd = useCallback(() => {
     if (!pickerFood) return;
-    addFood(pickerFood, { servings: selectedServings });
+    addFood(pickerFood, { servings: selectedServings, mealSlot: selectedMealSlot });
     setPickerFood(null);
-  }, [addFood, pickerFood, selectedServings]);
+  }, [addFood, pickerFood, selectedMealSlot, selectedServings]);
 
   const handleClosePicker = useCallback(() => {
     setPickerFood(null);
@@ -86,7 +88,9 @@ export default function FoodSearchScreen() {
       <ServingSizePickerModal
         food={pickerFood}
         selectedServings={selectedServings}
+        selectedMealSlot={selectedMealSlot}
         onSelectServings={setSelectedServings}
+        onSelectMealSlot={setSelectedMealSlot}
         onConfirm={handleConfirmAdd}
         onClose={handleClosePicker}
       />

@@ -1,14 +1,23 @@
 import React from 'react';
 import { Modal, View, Text, TouchableOpacity, StyleSheet, Pressable, Platform } from 'react-native';
-import { Food } from '../types';
+import { Food, MealSlot } from '../types';
 import { Colors, Spacing, FontSize, BorderRadius } from '../theme';
 
 export const SERVING_OPTIONS = [0.5, 1, 1.5, 2] as const;
 
+export const MEAL_SLOT_OPTIONS: { slot: MealSlot; label: string }[] = [
+  { slot: 'breakfast', label: 'Breakfast' },
+  { slot: 'lunch', label: 'Lunch' },
+  { slot: 'dinner', label: 'Dinner' },
+  { slot: 'snack', label: 'Snack' },
+];
+
 interface ServingSizePickerModalProps {
   food: Food | null;
   selectedServings: number;
+  selectedMealSlot: MealSlot;
   onSelectServings: (servings: number) => void;
+  onSelectMealSlot: (mealSlot: MealSlot) => void;
   onConfirm: () => void;
   onClose: () => void;
 }
@@ -16,7 +25,9 @@ interface ServingSizePickerModalProps {
 export default function ServingSizePickerModal({
   food,
   selectedServings,
+  selectedMealSlot,
   onSelectServings,
+  onSelectMealSlot,
   onConfirm,
   onClose,
 }: ServingSizePickerModalProps) {
@@ -47,6 +58,25 @@ export default function ServingSizePickerModal({
                     >
                       <Text style={[styles.optionText, selected && styles.optionTextSelected]}>
                         {formatServingOption(option)}
+                      </Text>
+                    </TouchableOpacity>
+                  );
+                })}
+              </View>
+
+              <Text style={styles.label}>Meal</Text>
+              <View style={styles.mealOptionsRow}>
+                {MEAL_SLOT_OPTIONS.map(({ slot, label }) => {
+                  const selected = selectedMealSlot === slot;
+                  return (
+                    <TouchableOpacity
+                      key={slot}
+                      style={[styles.mealOption, selected && styles.optionSelected]}
+                      onPress={() => onSelectMealSlot(slot)}
+                      activeOpacity={0.7}
+                    >
+                      <Text style={[styles.mealOptionText, selected && styles.optionTextSelected]}>
+                        {label}
                       </Text>
                     </TouchableOpacity>
                   );
@@ -139,6 +169,26 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     gap: Spacing.sm,
     marginBottom: Spacing.md,
+  },
+  mealOptionsRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: Spacing.sm,
+    marginBottom: Spacing.md,
+  },
+  mealOption: {
+    width: '48%',
+    paddingVertical: Spacing.sm,
+    borderRadius: BorderRadius.md,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    backgroundColor: Colors.background,
+    alignItems: 'center',
+  },
+  mealOptionText: {
+    fontSize: FontSize.sm,
+    fontWeight: '600',
+    color: Colors.textSecondary,
   },
   option: {
     flex: 1,

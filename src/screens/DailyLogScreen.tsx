@@ -4,7 +4,14 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import LogEntryRow from '../components/LogEntryRow';
 import { useFoodLog } from '../hooks/FoodLogContext';
 import { LogEntry, MealSlot } from '../types';
+import { calculateNutritionTotals } from '../utils/nutrition';
 import { Colors, Spacing, FontSize } from '../theme';
+
+interface LogSection {
+  title: string;
+  data: LogEntry[];
+  calorieTotal: number;
+}
 
 /**
  * DailyLogScreen: starter stub
@@ -31,7 +38,7 @@ export default function DailyLogScreen() {
   const insets = useSafeAreaInsets();
   const { entries, removeEntry } = useFoodLog();
 
-  const sections = useMemo(() => {
+  const sections = useMemo((): LogSection[] => {
     const bySlot = new Map<MealSlot, LogEntry[]>();
     for (const { slot } of MEAL_SECTIONS) {
       bySlot.set(slot, []);
@@ -39,10 +46,14 @@ export default function DailyLogScreen() {
     for (const entry of entries) {
       bySlot.get(entry.mealSlot)?.push(entry);
     }
-    return MEAL_SECTIONS.map(({ slot, title }) => ({
-      title,
-      data: bySlot.get(slot) ?? [],
-    })).filter((section) => section.data.length > 0);
+    return MEAL_SECTIONS.map(({ slot, title }) => {
+      const data = bySlot.get(slot) ?? [];
+      return {
+        title,
+        data,
+        calorieTotal: Math.round(calculateNutritionTotals(data).calories),
+      };
+    }).filter((section) => section.data.length > 0);
   }, [entries]);
 
   return (
@@ -70,8 +81,11 @@ export default function DailyLogScreen() {
           sections={sections}
           keyExtractor={(item) => item.id}
           renderItem={({ item }) => <LogEntryRow entry={item} onRemove={removeEntry} />}
-          renderSectionHeader={({ section: { title } }) => (
-            <Text style={styles.sectionTitle}>{title}</Text>
+          renderSectionHeader={({ section }) => (
+            <View style={styles.sectionHeader}>
+              <Text style={styles.sectionTitle}>{section.title}</Text>
+              <Text style={styles.sectionCalories}>{section.calorieTotal} kcal</Text>
+            </View>
           )}
           contentContainerStyle={styles.list}
           stickySectionHeadersEnabled={false}
@@ -107,12 +121,22 @@ const styles = StyleSheet.create({
     padding: Spacing.md,
     paddingBottom: Spacing.xl,
   },
+  sectionHeader: {
+    flexDirection: 'row',
+    alignItems: 'baseline',
+    justifyContent: 'space-between',
+    marginBottom: Spacing.sm,
+    marginTop: Spacing.sm,
+  },
   sectionTitle: {
     fontSize: FontSize.lg,
     fontWeight: '700',
     color: Colors.textPrimary,
-    marginBottom: Spacing.sm,
-    marginTop: Spacing.sm,
+  },
+  sectionCalories: {
+    fontSize: FontSize.sm,
+    fontWeight: '600',
+    color: Colors.primary,
   },
   empty: {
     flex: 1,

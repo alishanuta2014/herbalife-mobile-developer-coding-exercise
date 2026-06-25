@@ -6,6 +6,20 @@ import { useFoodLog } from '../hooks/FoodLogContext';
 import { LogEntry, MealSlot } from '../types';
 import { Colors, Spacing, FontSize } from '../theme';
 
+/**
+ * DailyLogScreen: starter stub
+ *
+ * This screen should display the user's food log for today, organized by
+ * meal slot (Breakfast, Lunch, Dinner, Snack). Right now it shows a
+ * placeholder. Your job is to bring it to life.
+ *
+ * Suggested features to implement (see EXERCISE.md and TODO.md for full list):
+ *   - Render logged entries, grouped by meal slot
+ *   - Show per-entry calorie and macro info
+ *   - Allow removing an entry from the log
+ *   - Display a running total at the top or bottom
+ */
+
 const MEAL_SECTIONS: { slot: MealSlot; title: string }[] = [
   { slot: 'breakfast', title: 'Breakfast' },
   { slot: 'lunch', title: 'Lunch' },
@@ -44,6 +58,7 @@ export default function DailyLogScreen() {
         </Text>
       </View>
 
+      {/* TODO: Replace this placeholder with the actual daily log UI */}
       {entries.length === 0 ? (
         <View style={styles.empty}>
           <Text style={styles.emptyIcon}>🥗</Text>

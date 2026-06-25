@@ -15,6 +15,8 @@ export default function FoodSearchScreen() {
 
   const handleAddToLog = useCallback(
     (food: Food) => {
+      // TODO: Replace this placeholder with real log state management.
+      // The food being added is available as `food`.
       addFood(food);
     },
     [addFood]

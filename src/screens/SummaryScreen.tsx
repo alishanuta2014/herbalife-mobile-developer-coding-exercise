@@ -1,6 +1,9 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { View, Text, StyleSheet, ScrollView } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useFoodLog } from '../hooks/FoodLogContext';
+import { calculateNutritionTotals, roundNutritionTotals } from '../utils/nutrition';
+import { DailyGoals } from '../types';
 import { Colors, Spacing, FontSize, BorderRadius } from '../theme';
 
 /**
@@ -16,22 +19,22 @@ import { Colors, Spacing, FontSize, BorderRadius } from '../theme';
  *     whatever visualization feels right, your call)
  *   - Optionally allow the user to set or adjust daily goals
  */
+
+const DEFAULT_GOALS: DailyGoals = {
+  calories: 2000,
+  protein: 150,
+  carbs: 200,
+  fat: 65,
+};
+
 export default function SummaryScreen() {
   const insets = useSafeAreaInsets();
-  // TODO: Replace these zeros with real computed values from the log
-  const totals = {
-    calories: 0,
-    protein: 0,
-    carbs: 0,
-    fat: 0,
-  };
+  const { entries } = useFoodLog();
 
-  const goals = {
-    calories: 2000,
-    protein: 150,
-    carbs: 200,
-    fat: 65,
-  };
+  // TODO: Replace these zeros with real computed values from the log
+  const totals = useMemo(() => roundNutritionTotals(calculateNutritionTotals(entries)), [entries]);
+
+  const goals = DEFAULT_GOALS;
 
   return (
     <ScrollView
@@ -51,16 +54,10 @@ export default function SummaryScreen() {
           <Text style={styles.calorieGoal}> / {goals.calories} kcal</Text>
         </View>
         {/* TODO: Add a progress bar or ring here */}
-        <View style={styles.progressTrack}>
-          <View
-            style={[
-              styles.progressFill,
-              {
-                width: `${Math.min((totals.calories / goals.calories) * 100, 100)}%`,
-              },
-            ]}
-          />
-        </View>
+        <ProgressBar value={totals.calories} goal={goals.calories} color={Colors.primary} />
+        <Text style={styles.progressCaption}>
+          {Math.max(goals.calories - totals.calories, 0)} kcal remaining
+        </Text>
       </View>
 
       {/* Macro Cards */}
@@ -88,15 +85,31 @@ interface MacroCardProps {
 }
 
 function MacroCard({ label, value, goal, color }: MacroCardProps) {
-  const pct = Math.min((value / goal) * 100, 100);
   return (
     <View style={[styles.card, styles.macroCard]}>
       <Text style={[styles.macroLabel, { color }]}>{label}</Text>
       <Text style={styles.macroValue}>{value}g</Text>
       <Text style={styles.macroGoal}>of {goal}g</Text>
+      <ProgressBar value={value} goal={goal} color={color} />
+    </View>
+  );
+}
+
+interface ProgressBarProps {
+  value: number;
+  goal: number;
+  color?: string;
+}
+
+function ProgressBar({ value, goal, color = Colors.primary }: ProgressBarProps) {
+  const pct = goal > 0 ? Math.min((value / goal) * 100, 100) : 0;
+
+  return (
+    <View style={styles.progressBar}>
       <View style={styles.progressTrack}>
         <View style={[styles.progressFill, { width: `${pct}%`, backgroundColor: color }]} />
       </View>
+      <Text style={styles.progressLabel}>{Math.round(pct)}%</Text>
     </View>
   );
 }
@@ -152,8 +165,14 @@ const styles = StyleSheet.create({
     fontSize: FontSize.md,
     color: Colors.textSecondary,
   },
+  progressBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.sm,
+  },
   progressTrack: {
-    height: 8,
+    flex: 1,
+    height: 12,
     backgroundColor: Colors.border,
     borderRadius: BorderRadius.full,
     overflow: 'hidden',
@@ -162,6 +181,18 @@ const styles = StyleSheet.create({
     height: '100%',
     backgroundColor: Colors.primary,
     borderRadius: BorderRadius.full,
+  },
+  progressLabel: {
+    fontSize: FontSize.xs,
+    fontWeight: '600',
+    color: Colors.textSecondary,
+    minWidth: 32,
+    textAlign: 'right',
+  },
+  progressCaption: {
+    fontSize: FontSize.sm,
+    color: Colors.textMuted,
+    marginTop: Spacing.xs,
   },
   macroRow: {
     flexDirection: 'row',

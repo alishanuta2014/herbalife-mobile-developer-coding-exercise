@@ -6,24 +6,18 @@ Please fill this in before submitting. A few honest bullets is all we need.
 
 ## Tools Used
 
-<!-- e.g. GitHub Copilot (inline completion), Claude (chat via claude.ai), Cursor, ChatGPT, etc. -->
-
--
+- Cursor
 
 ## What Was AI-Assisted
 
-<!-- Which parts of your submission involved AI assistance? e.g. "Used Copilot for FoodLogContext boilerplate", "Asked Claude to suggest a hook structure", "Generated the AsyncStorage persistence layer via chat" -->
-
--
+- Nice-to-have features
+- Unit tests setup and test files
 
 ## Where You Had to Correct or Override the AI
 
-<!-- At least one example where the AI output wasn't right and you had to fix, change, or discard it. This is the most interesting part for us. -->
-
--
+- Cursor initially used deprecated unit test libraries (`react-test-renderer`, older `act` APIs). I noticed the deprecation warnings and asked Cursor to update the tests to use current approaches (`@testing-library/react`, `renderHook`).
 
 ## Any Other Notes
 
-<!-- Optional: prompting approach, model customizations, workflow preferences, anything else you want us to know about how you work with AI tools. -->
-
--
+- I worked one feature at a time: implement → review in the app → fix if needed → commit.
+- I used a planning-first prompting approach with Cursor so we agreed on scope and order before each feature.

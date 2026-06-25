@@ -1,7 +1,9 @@
-import React, { useMemo } from 'react';
-import { View, Text, StyleSheet, ScrollView } from 'react-native';
+import React, { useMemo, useState } from 'react';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import EditGoalsModal from '../components/EditGoalsModal';
 import { useFoodLog } from '../hooks/FoodLogContext';
+import { useDailyGoals } from '../hooks/DailyGoalsContext';
 import {
   calculateNutritionTotals,
   roundNutritionTotals,
@@ -9,7 +11,6 @@ import {
   calculateRemaining,
   calculateOverGoal,
 } from '../utils/nutrition';
-import { DailyGoals } from '../types';
 import { Colors, Spacing, FontSize, BorderRadius } from '../theme';
 
 /**
@@ -26,21 +27,15 @@ import { Colors, Spacing, FontSize, BorderRadius } from '../theme';
  *   - Optionally allow the user to set or adjust daily goals
  */
 
-const DEFAULT_GOALS: DailyGoals = {
-  calories: 2000,
-  protein: 150,
-  carbs: 200,
-  fat: 65,
-};
-
 export default function SummaryScreen() {
   const insets = useSafeAreaInsets();
   const { entries } = useFoodLog();
+  const { goals, updateGoals, resetGoals } = useDailyGoals();
+  const [isEditingGoals, setIsEditingGoals] = useState(false);
+  const [goalsModalKey, setGoalsModalKey] = useState(0);
 
   // TODO: Replace these zeros with real computed values from the log
   const totals = useMemo(() => roundNutritionTotals(calculateNutritionTotals(entries)), [entries]);
-
-  const goals = DEFAULT_GOALS;
 
   return (
     <ScrollView
@@ -48,8 +43,22 @@ export default function SummaryScreen() {
       contentContainerStyle={[styles.content, { paddingTop: insets.top + Spacing.lg }]}
     >
       <View style={styles.header}>
-        <Text style={styles.title}>Summary</Text>
-        <Text style={styles.subtitle}>What's left to hit your daily goals</Text>
+        <View style={styles.headerRow}>
+          <View style={styles.headerText}>
+            <Text style={styles.title}>Summary</Text>
+            <Text style={styles.subtitle}>What's left to hit your daily goals</Text>
+          </View>
+          <TouchableOpacity
+            style={styles.editGoalsButton}
+            onPress={() => {
+              setGoalsModalKey((key) => key + 1);
+              setIsEditingGoals(true);
+            }}
+            activeOpacity={0.7}
+          >
+            <Text style={styles.editGoalsButtonText}>Edit Goals</Text>
+          </TouchableOpacity>
+        </View>
       </View>
 
       {/* Calorie Card */}
@@ -76,6 +85,15 @@ export default function SummaryScreen() {
       </View>
 
       {/* TODO: Add a per-meal-slot breakdown, or any other summary info */}
+
+      <EditGoalsModal
+        key={goalsModalKey}
+        visible={isEditingGoals}
+        goals={goals}
+        onSave={updateGoals}
+        onReset={resetGoals}
+        onClose={() => setIsEditingGoals(false)}
+      />
     </ScrollView>
   );
 }
@@ -174,6 +192,28 @@ const styles = StyleSheet.create({
   },
   header: {
     marginBottom: Spacing.lg,
+  },
+  headerRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    justifyContent: 'space-between',
+    gap: Spacing.sm,
+  },
+  headerText: {
+    flex: 1,
+  },
+  editGoalsButton: {
+    paddingHorizontal: Spacing.sm,
+    paddingVertical: Spacing.xs,
+    borderRadius: BorderRadius.md,
+    borderWidth: 1,
+    borderColor: Colors.primary,
+    backgroundColor: Colors.primaryLight,
+  },
+  editGoalsButtonText: {
+    fontSize: FontSize.sm,
+    fontWeight: '600',
+    color: Colors.primary,
   },
   title: {
     fontSize: FontSize.xxl,

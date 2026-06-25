@@ -15,7 +15,7 @@ const MEAL_SECTIONS: { slot: MealSlot; title: string }[] = [
 
 export default function DailyLogScreen() {
   const insets = useSafeAreaInsets();
-  const { entries } = useFoodLog();
+  const { entries, removeEntry } = useFoodLog();
 
   const sections = useMemo(() => {
     const bySlot = new Map<MealSlot, LogEntry[]>();
@@ -54,7 +54,7 @@ export default function DailyLogScreen() {
         <SectionList
           sections={sections}
           keyExtractor={(item) => item.id}
-          renderItem={({ item }) => <LogEntryRow entry={item} />}
+          renderItem={({ item }) => <LogEntryRow entry={item} onRemove={removeEntry} />}
           renderSectionHeader={({ section: { title } }) => (
             <Text style={styles.sectionTitle}>{title}</Text>
           )}

@@ -1,13 +1,15 @@
 import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { LogEntry } from '../types';
 import { Colors, Spacing, FontSize, BorderRadius } from '../theme';
 
 interface LogEntryRowProps {
   entry: LogEntry;
+  onRemove?: (entryId: string) => void;
 }
 
-export default function LogEntryRow({ entry }: LogEntryRowProps) {
+export default function LogEntryRow({ entry, onRemove }: LogEntryRowProps) {
   const { food, servings } = entry;
   const servingLabel = servings === 1 ? '1 serving' : `${servings} servings`;
 
@@ -42,6 +44,16 @@ export default function LogEntryRow({ entry }: LogEntryRowProps) {
           />
         </View>
       </View>
+
+      <TouchableOpacity
+        style={styles.removeButton}
+        onPress={() => onRemove?.(entry.id)}
+        activeOpacity={0.7}
+        accessibilityLabel={`Remove ${food.name}`}
+        accessibilityRole="button"
+      >
+        <Ionicons name="trash-outline" size={18} color={Colors.error} />
+      </TouchableOpacity>
     </View>
   );
 }
@@ -67,6 +79,8 @@ function MacroPill({ label, value, unit, color = Colors.textPrimary }: MacroPill
 
 const styles = StyleSheet.create({
   container: {
+    flexDirection: 'row',
+    alignItems: 'center',
     backgroundColor: Colors.surface,
     borderRadius: BorderRadius.md,
     padding: Spacing.md,
@@ -76,6 +90,7 @@ const styles = StyleSheet.create({
   },
   info: {
     flex: 1,
+    marginRight: Spacing.sm,
   },
   name: {
     fontSize: FontSize.md,
@@ -108,5 +123,15 @@ const styles = StyleSheet.create({
   macroValue: {
     fontSize: FontSize.xs,
     color: Colors.textSecondary,
+  },
+  removeButton: {
+    width: 36,
+    height: 36,
+    borderRadius: BorderRadius.full,
+    backgroundColor: Colors.background,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: Colors.border,
   },
 });

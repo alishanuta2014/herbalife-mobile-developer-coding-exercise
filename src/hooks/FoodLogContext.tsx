@@ -1,5 +1,6 @@
-import React, { createContext, useCallback, useContext, useMemo, useState } from 'react';
+import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { Food, LogEntry, MealSlot } from '../types';
+import { loadFoodLogEntries, saveFoodLogEntries } from '../utils/foodLogStorage';
 
 interface FoodLogContextValue {
   entries: LogEntry[];
@@ -11,6 +12,30 @@ const FoodLogContext = createContext<FoodLogContextValue | null>(null);
 
 export function FoodLogProvider({ children }: { children: React.ReactNode }) {
   const [entries, setEntries] = useState<LogEntry[]>([]);
+  const [isHydrated, setIsHydrated] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function hydrateLog() {
+      const storedEntries = await loadFoodLogEntries();
+      if (!cancelled) {
+        setEntries(storedEntries);
+        setIsHydrated(true);
+      }
+    }
+
+    hydrateLog();
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!isHydrated) return;
+    saveFoodLogEntries(entries);
+  }, [entries, isHydrated]);
 
   const addFood = useCallback(
     (food: Food, options?: { servings?: number; mealSlot?: MealSlot }) => {
